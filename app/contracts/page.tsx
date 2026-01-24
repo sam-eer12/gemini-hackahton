@@ -12,7 +12,6 @@ export default function Contracts() {
     const [generatedContract, setGeneratedContract] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Scan State
     const [scanFile, setScanFile] = useState<File | null>(null);
     const [scanResult, setScanResult] = useState('');
 
