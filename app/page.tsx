@@ -1,12 +1,31 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Scale, ShieldCheck, FileText, Globe } from "lucide-react";
+import AuthModal from "@/components/AuthModal";
+import Prism from "@/app/animations/Prism";
 
 export default function Home() {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
   return (
     <main className="min-h-screen bg-navy-950 text-slate-200 overflow-hidden relative">
+      {/* Prism Animation Background */}
+      <div className="fixed inset-0 w-full h-full pointer-events-none opacity-75 z-0" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
+        <Prism
+          animationType="rotate"
+          timeScale={0.5}
+          height={3.5}
+          baseWidth={5.5}
+          scale={3.6}
+          hueShift={0}
+          colorFrequency={1}
+          noise={0}
+          glow={1}
+        />
+      </div>
       {/* Background Decorative Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gold-500/10 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-900/10 rounded-full blur-[100px]" />
@@ -21,12 +40,12 @@ export default function Home() {
           <Link href="/about" className="hover:text-gold-400 transition-colors">The Firm</Link>
           <Link href="/contact" className="hover:text-gold-400 transition-colors">Contact</Link>
         </div>
-        <Link
-          href="/onboarding"
+        <button
+          onClick={() => setIsAuthModalOpen(true)}
           className="px-6 py-2 border border-gold-600/30 text-gold-400 hover:bg-gold-500/10 hover:border-gold-500 transition-all duration-500 rounded-none uppercase text-xs tracking-[0.2em]"
         >
-          Client Portal
-        </Link>
+          Login / Sign Up
+        </button>
       </nav>
 
       {/* Hero Section */}
@@ -128,6 +147,13 @@ export default function Home() {
       <footer className="py-8 text-center text-slate-600 text-xs border-t border-slate-900 mt-20">
         <p>© 2026 AMICUS AI. INTELLIGENT LEGAL SYSTEMS. NOT A HUMAN LAW FIRM.</p>
       </footer>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialMode="login"
+      />
     </main>
   );
 }
