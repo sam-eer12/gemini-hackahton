@@ -11,7 +11,7 @@ export default function Sidebar() {
     const isActive = (path: string) => pathname === path;
 
     return (
-        <aside className="w-64 bg-navy-900 border-r border-slate-800 flex flex-col hidden md:flex h-full">
+        <aside className="w-64 bg-navy-900 border-r border-slate-800 flex-col hidden md:flex h-full">
             <div className="p-6 border-b border-slate-800">
                 <h2 className="text-xl font-serif text-slate-100 tracking-wider">AMICUS<span className="text-gold-500">.AI</span></h2>
                 <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest">Counsel Active</p>

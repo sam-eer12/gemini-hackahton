@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { PenTool, FileSearch, Loader2, Download, AlertTriangle } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import Markdown from 'react-markdown'; 
 import { motion } from 'framer-motion';
 
 export default function Contracts() {
@@ -48,7 +48,7 @@ export default function Contracts() {
         const formData = new FormData();
         formData.append('file', scanFile);
         formData.append('userId', localStorage.getItem('amicus_user_id') || '');
-        formData.append('mode', 'contract_scan'); // Special mode for contract scanning
+        formData.append('mode', 'contract_scan'); 
 
         try {
             const res = await fetch('/api/analyze', {
@@ -70,7 +70,7 @@ export default function Contracts() {
             <Sidebar />
 
             <main className="flex-1 flex flex-col h-full relative">
-                <div className="absolute top-0 left-0 w-full h-[300px] bg-linear-to-b from-navy-900 to-transparent pointer-events-none" />
+                <div className="absolute top-0 left-0 w-full h-[300px] bg-linear-gradient-to-b from-navy-900 to-transparent pointer-events-none" />
 
                 <div className="p-8 pb-0 z-10">
                     <h1 className="text-3xl font-serif text-slate-100 mb-6">Contract Suite</h1>
@@ -121,7 +121,7 @@ export default function Contracts() {
                                         <Download size={20} />
                                     </div>
                                     <div className="prose prose-sm max-w-none font-serif">
-                                        <ReactMarkdown>{generatedContract}</ReactMarkdown>
+                                        <Markdown>{generatedContract}</Markdown>
                                     </div>
                                 </div>
                             )}
@@ -166,9 +166,9 @@ export default function Contracts() {
                                         <h3 className="text-lg font-bold text-slate-100 uppercase tracking-widest">Risk Assessment</h3>
                                     </div>
                                     <div className="prose prose-invert prose-headings:text-red-400 prose-strong:text-red-200">
-                                        <ReactMarkdown>
+                                        <Markdown>
                                             {scanResult}
-                                        </ReactMarkdown>
+                                        </Markdown>
                                     </div>
                                 </div>
                             )}
