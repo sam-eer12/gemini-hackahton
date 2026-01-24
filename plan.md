@@ -19,6 +19,7 @@ We are building a Next.js application that *looks* like a high-end, sophisticate
 * **Visuals:** Deep Navy/Charcoal backgrounds, Serif typography (Playfair Display), Gold accents.
 * **Tone:** Authoritative yet accessible.
 * **Layout:** "Bento Grid" for services, large "Hero" typography, sticky "Book Consultation" (Chat) button.
+* **Design Referance:** "https://dribbble.com/shots/25684898-Law-Firm-Website-Design?utm_source=Clipboard_Shot&utm_campaign=wolfpixelagency&utm_content=Law%20Firm%20Website%20Design&utm_medium=Social_Share&utm_source=Clipboard_Shot&utm_campaign=wolfpixelagency&utm_content=Law%20Firm%20Website%20Design&utm_medium=Social_Share"
 
 ## 4. User Journey & Features
 
