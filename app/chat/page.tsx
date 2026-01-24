@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { Send, Menu, LogOut, FileText, Scale } from 'lucide-react';
+import Markdown from 'react-markdown'; // FIXED: Named import
+import { Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
@@ -27,7 +27,6 @@ export default function Chat() {
             return;
         }
         setUserId(id);
-        // Initial greeting
         setMessages([
             { role: 'model', content: "I am Amicus. My jurisdiction protocols are active. How may I advise you today?" }
         ]);
@@ -42,16 +41,22 @@ export default function Chat() {
 
         const userMsg = input;
         setInput('');
-        setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+        
+        // Optimistically add user message
+        const newMessages = [...messages, { role: 'user', content: userMsg } as Message];
+        setMessages(newMessages);
         setLoading(true);
 
         try {
-            // Filter out the initial static greeting (first message) to avoid Gemini "History must start with user" error
-            // and ensure we don't send the current input again (since it's not in messages state yet)
-            const apiHistory = messages.filter(m => m.content !== "I am Amicus. My jurisdiction protocols are active. How may I advise you today?").map(m => ({
-                role: m.role === 'model' ? 'model' : 'user',
-                parts: [{ text: m.content }]
-            }));
+            // Filter history for API: Remove greeting, keep only previous exchange
+            // Note: We do NOT include the 'userMsg' we just typed in the history array passed to startChat.
+            // startChat initializes the *past*. sendMessage handles the *current* turn.
+            const apiHistory = messages
+                .filter(m => m.content !== "I am Amicus. My jurisdiction protocols are active. How may I advise you today?")
+                .map(m => ({
+                    role: m.role === 'model' ? 'model' : 'user',
+                    parts: [{ text: m.content }]
+                }));
 
             const res = await fetch('/api/chat', {
                 method: 'POST',
@@ -63,14 +68,17 @@ export default function Chat() {
                 })
             });
 
-            if (!res.ok) throw new Error('Consultation failed');
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Consultation failed');
+            }
 
             const data = await res.json();
             setMessages(prev => [...prev, { role: 'model', content: data.reply }]);
 
         } catch (e) {
             console.error(e);
-            setMessages(prev => [...prev, { role: 'model', content: "Connection to Amicus Core disrupted. Please re-state your query." }]);
+            setMessages(prev => [...prev, { role: 'model', content: "Connection to Amicus Core disrupted. Please try again." }]);
         } finally {
             setLoading(false);
         }
@@ -80,14 +88,11 @@ export default function Chat() {
         <div className="flex h-screen bg-navy-950 text-slate-200 overflow-hidden font-sans">
             <Sidebar />
 
-            {/* Main Chat Area */}
             <main className="flex-1 flex flex-col relative w-full">
-                {/* Header (Mobile only usually, but kept for title) */}
                 <header className="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-navy-950/95 backdrop-blur z-10">
                     <span className="text-sm text-slate-400 uppercase tracking-widest">Privileged & Confidential</span>
                 </header>
 
-                {/* Chat Stream */}
                 <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scrollbar-thin scrollbar-thumb-navy-800">
                     {messages.map((msg, idx) => (
                         <motion.div
@@ -105,13 +110,13 @@ export default function Chat() {
                             >
                                 {msg.role === 'model' && <div className="text-xs text-gold-500 uppercase tracking-widest mb-2 font-bold">Amicus</div>}
                                 <div className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-navy-900 prose-pre:border prose-pre:border-slate-800">
-                                    <ReactMarkdown
+                                    <Markdown
                                         components={{
                                             strong: ({ node, ...props }) => <strong className="text-slate-100 font-bold" {...props} />
                                         }}
                                     >
                                         {msg.content}
-                                    </ReactMarkdown>
+                                    </Markdown>
                                 </div>
                             </div>
                         </motion.div>
@@ -126,7 +131,6 @@ export default function Chat() {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input Area */}
                 <div className="p-4 border-t border-slate-800 bg-navy-950">
                     <div className="max-w-4xl mx-auto relative flex items-center gap-4">
                         <input
@@ -145,11 +149,6 @@ export default function Chat() {
                         >
                             <Send size={20} />
                         </button>
-                    </div>
-                    <div className="text-center mt-2">
-                        <p className="text-[10px] text-slate-600 uppercase tracking-widest">
-                            AI output may be inaccurate. Verify with human counsel.
-                        </p>
                     </div>
                 </div>
             </main>
