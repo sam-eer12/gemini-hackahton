@@ -1,5 +1,7 @@
 @import "tailwindcss";
-
+::-webkit-scrollbar {
+  display: none;
+}
 @theme {
   --font-serif: var(--font-playfair), serif;
   --font-sans: var(--font-lato), sans-serif;

@@ -65,12 +65,13 @@ export default function Home() {
             Zero retention. Absolute privacy. Instant strategy tailored to your specific local laws.
           </p>
 
-          <Link href="/onboarding">
-            <button className="group relative px-8 py-4 bg-slate-100 text-navy-950 hover:bg-gold-500 transition-all duration-300 font-bold tracking-widest uppercase text-sm">
-              Initialize Counsel
-              <span className="absolute bottom-0 right-0 w-full h-px bg-navy-950 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
-            </button>
-          </Link>
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="group relative px-8 py-4 bg-slate-100 text-navy-950 hover:bg-gold-500 transition-all duration-300 font-bold tracking-widest uppercase text-sm"
+          >
+            Initialize Counsel
+            <span className="absolute bottom-0 right-0 w-full h-px bg-navy-950 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
+          </button>
         </motion.div>
       </section>
 
