@@ -32,7 +32,7 @@ function generateOTP(): string {
 export async function POST(req: Request) {
     try {
         await connectToDatabase();
-        const { email, name, password } = await req.json();
+        const { email, name, password, country, state } = await req.json();
 
         if (!email) {
             return NextResponse.json(
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
             {
                 email: emailLower,
                 otp,
-                userData: { email: emailLower, name, password },
+                userData: { email: emailLower, name, password, country, state },
                 createdAt: new Date()
             },
             { upsert: true, new: true }
