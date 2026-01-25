@@ -1,6 +1,3 @@
-/**
- * Authentication utility functions for JWT token management
- */
 
 const TOKEN_KEY = 'amicus_auth_token';
 
@@ -9,18 +6,12 @@ export interface UserInfo {
     email: string;
 }
 
-/**
- * Store JWT token in localStorage
- */
 export function storeToken(token: string): void {
     if (typeof window !== 'undefined') {
         localStorage.setItem(TOKEN_KEY, token);
     }
 }
 
-/**
- * Retrieve JWT token from localStorage
- */
 export function getToken(): string | null {
     if (typeof window !== 'undefined') {
         return localStorage.getItem(TOKEN_KEY);
@@ -28,9 +19,7 @@ export function getToken(): string | null {
     return null;
 }
 
-/**
- * Remove JWT token from localStorage
- */
+
 export function clearToken(): void {
     if (typeof window !== 'undefined') {
         localStorage.removeItem(TOKEN_KEY);

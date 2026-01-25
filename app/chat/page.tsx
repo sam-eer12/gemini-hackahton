@@ -23,7 +23,7 @@ export default function Chat() {
     useEffect(() => {
         const id = localStorage.getItem('amicus_user_id');
         if (!id) {
-            router.push('/onboarding');
+            router.push('/');
             return;
         }
         setUserId(id);

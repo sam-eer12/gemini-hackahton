@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { PenTool, FileSearch, Loader2, Download, AlertTriangle } from 'lucide-react';
-import Markdown from 'react-markdown'; 
+import Markdown from 'react-markdown';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 export default function Contracts() {
     const [activeTab, setActiveTab] = useState<'forge' | 'scan'>('forge');
@@ -14,6 +15,14 @@ export default function Contracts() {
 
     const [scanFile, setScanFile] = useState<File | null>(null);
     const [scanResult, setScanResult] = useState('');
+    const router = useRouter();
+
+    useEffect(() => {
+        const userId = localStorage.getItem('amicus_user_id');
+        if (!userId) {
+            router.push('/');
+        }
+    }, [router]);
 
     async function handleForge() {
         if (!prompt.trim()) return;
@@ -47,7 +56,7 @@ export default function Contracts() {
         const formData = new FormData();
         formData.append('file', scanFile);
         formData.append('userId', localStorage.getItem('amicus_user_id') || '');
-        formData.append('mode', 'contract_scan'); 
+        formData.append('mode', 'contract_scan');
 
         try {
             const res = await fetch('/api/analyze', {

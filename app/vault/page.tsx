@@ -1,15 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 export default function Vault() {
     const [file, setFile] = useState<File | null>(null);
     const [analysis, setAnalysis] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const router = useRouter();
+
+    useEffect(() => {
+        const userId = localStorage.getItem('amicus_user_id');
+        if (!userId) {
+            router.push('/');
+        }
+    }, [router]);
 
     async function handleAnalyze() {
         if (!file) return;
