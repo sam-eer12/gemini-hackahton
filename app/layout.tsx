@@ -32,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ minWidth: '100vw', minHeight: '100vh' }}>
       <head>
         <Script
           src="https://www.phone.email/verify_email_v1.js"
@@ -41,6 +41,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${playfair.variable} ${lato.variable} antialiased bg-navy-950 text-slate-200 font-sans`}
+        style={{ minWidth: '100vw', minHeight: '100vh' }}
       >
         {children}
         <Analytics />

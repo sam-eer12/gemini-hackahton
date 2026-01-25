@@ -46,7 +46,7 @@ export default function ContactPage() {
     };
 
     return (
-        <main className="min-h-screen bg-navy-950 text-slate-200 relative overflow-hidden">
+        <main className="min-h-screen w-full bg-navy-950 text-slate-200 relative overflow-x-hidden" style={{ minWidth: '100vw' }}>
             <div className="fixed inset-0 w-full h-full pointer-events-none opacity-75 z-0" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
                 <Prism
                     animationType="rotate"
