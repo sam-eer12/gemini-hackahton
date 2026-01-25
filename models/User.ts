@@ -6,22 +6,29 @@ const UserSchema = new Schema({
         required: [true, 'Please provide an email'],
         unique: true,
     },
+    // In a real app, hash this password! For this hackathon/demo, simple storage is assumed for now
+    // or use NextAuth. Depending on requirements, we might not even need a password if using magic links/OAuth.
+    // We'll stick to basic fields for now.
     password: {
         type: String,
         required: false,
     },
     name: {
         type: String,
-        required: true,
+        required: false,
     },
     jurisdiction_country: {
         type: String,
+<<<<<<< HEAD
         required: false,
+=======
+        required: false, // Optional until onboarding is complete
+>>>>>>> parent of 385c668 (Update User.ts)
         default: null
     },
     jurisdiction_state: {
         type: String,
-        required: false,
+        required: false, // Optional until onboarding is complete
         default: null
     },
     onboarding_complete: {
