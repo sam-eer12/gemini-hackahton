@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { Scale, ShieldCheck, FileText, Globe } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
+import Navbar from "@/components/Navbar";
 import Prism from "@/app/animations/Prism";
 
 export default function Home() {
@@ -31,22 +31,7 @@ export default function Home() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-900/10 rounded-full blur-[100px]" />
 
       {/* Navigation */}
-      <nav className="flex justify-between items-center p-8 max-w-7xl mx-auto z-10 relative">
-        <div className="text-2xl font-serif font-bold text-slate-100 tracking-wider">
-          AMICUS<span className="text-gold-500">.AI</span>
-        </div>
-        <div className="flex gap-8 text-sm font-medium tracking-widest uppercase text-slate-400">
-          <Link href="/terms" className="hover:text-gold-400 transition-colors">Protocol</Link>
-          <Link href="/about" className="hover:text-gold-400 transition-colors">The Firm</Link>
-          <Link href="/contact" className="hover:text-gold-400 transition-colors">Contact</Link>
-        </div>
-        <button
-          onClick={() => setIsAuthModalOpen(true)}
-          className="px-6 py-2 border border-gold-600/30 text-gold-400 hover:bg-gold-500/10 hover:border-gold-500 transition-all duration-500 rounded-none uppercase text-xs tracking-[0.2em]"
-        >
-          Login / Sign Up
-        </button>
-      </nav>
+      <Navbar onLoginClick={() => setIsAuthModalOpen(true)} />
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-8 pt-20 pb-32 relative z-10">

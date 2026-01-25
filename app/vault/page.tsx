@@ -52,7 +52,7 @@ export default function Vault() {
         <div className="flex h-screen bg-navy-950 text-slate-200 overflow-hidden font-sans">
             <Sidebar />
 
-            <main className="flex-1 overflow-y-auto p-8 relative">
+            <main className="flex-1 overflow-y-auto p-8 mt-5 relative pt-16 md:pt-8">
                 <div className="absolute top-[-10%] right-[-10%] w-[30%] h-[30%] bg-gold-500/5 rounded-full blur-[100px]" />
 
                 <div className="max-w-4xl mx-auto z-10 relative">

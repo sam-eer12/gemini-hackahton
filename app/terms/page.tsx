@@ -4,15 +4,21 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { acceptTerms } from '../actions';
 import { CheckSquare, Square } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function Terms() {
     const [userId, setUserId] = useState<string | null>(null);
     const [accepted, setAccepted] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         const id = localStorage.getItem('amicus_user_id');
+        if (!id) {
+            router.push('/');
+            return;
+        }
         setUserId(id);
-    }, []);
+    }, [router]);
 
     const handleAccept = async () => {
         if (userId && accepted) {

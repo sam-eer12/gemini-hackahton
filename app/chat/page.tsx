@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Markdown from 'react-markdown'; // FIXED: Named import
+import Markdown from 'react-markdown';
 import { Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -41,16 +41,12 @@ export default function Chat() {
 
         const userMsg = input;
         setInput('');
-        
-        // Optimistically add user message
+
         const newMessages = [...messages, { role: 'user', content: userMsg } as Message];
         setMessages(newMessages);
         setLoading(true);
 
         try {
-            // Filter history for API: Remove greeting, keep only previous exchange
-            // Note: We do NOT include the 'userMsg' we just typed in the history array passed to startChat.
-            // startChat initializes the *past*. sendMessage handles the *current* turn.
             const apiHistory = messages
                 .filter(m => m.content !== "I am Amicus. My jurisdiction protocols are active. How may I advise you today?")
                 .map(m => ({
@@ -88,7 +84,7 @@ export default function Chat() {
         <div className="flex h-screen bg-navy-950 text-slate-200 overflow-hidden font-sans">
             <Sidebar />
 
-            <main className="flex-1 flex flex-col relative w-full">
+            <main className="flex-1 flex flex-col relative w-full pt-16 md:pt-0">
                 <header className="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-navy-950/95 backdrop-blur z-10">
                     <span className="text-sm text-slate-400 uppercase tracking-widest">Privileged & Confidential</span>
                 </header>

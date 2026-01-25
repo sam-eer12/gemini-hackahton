@@ -64,7 +64,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
             setOtpSent(true);
             setResendTimer(60);
-            
+
             // Show OTP for testing (remove in production)
             if (data.otp) {
                 setSuccess(`Code sent!`);
@@ -119,9 +119,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
             setSuccess('Email verified! Welcome to AMICUS. Redirecting...');
 
-            // Redirect to chat/dashboard
+            // Redirect new users to terms page first
             setTimeout(() => {
-                router.push('/chat');
+                router.push('/terms');
             }, 1500);
         } catch (err: any) {
             setError(err.message || 'Verification failed');
@@ -285,8 +285,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
             }
             setSuccess("Login successful! Redirecting...");
 
+            // Check if user has completed onboarding (accepted terms)
+            const redirectPath = data.user.onboarding_complete ? "/chat" : "/terms";
             setTimeout(() => {
-                router.push("/chat");
+                router.push(redirectPath);
             }, 1000);
         } catch (err: any) {
             setError(err.message || "An error occurred");
@@ -331,7 +333,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                             </h2>
                             <p className="text-slate-400 text-sm">
                                 {isVerifyingEmail
-                                    ? otpSent 
+                                    ? otpSent
                                         ? "Enter the 6-digit code sent to your email"
                                         : "We'll send you a verification code"
                                     : mode === "login"

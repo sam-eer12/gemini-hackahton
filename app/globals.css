@@ -1,7 +1,14 @@
 @import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
+
 ::-webkit-scrollbar {
   display: none;
 }
+
 @theme {
   --font-serif: var(--font-playfair), serif;
   --font-sans: var(--font-lato), sans-serif;
@@ -9,7 +16,7 @@
   --color-navy-950: #050a14;
   --color-navy-900: #0a1428;
   --color-navy-800: #112240;
-  
+
   --color-gold-500: #d4af37;
   --color-gold-400: #e5c158;
   --color-gold-600: #b08d26;
@@ -31,8 +38,12 @@ body {
   font-family: var(--font-sans);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-serif);
   color: var(--color-slate-100);
 }
-

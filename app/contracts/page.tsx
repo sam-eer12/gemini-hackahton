@@ -77,7 +77,7 @@ export default function Contracts() {
         <div className="flex h-screen bg-navy-950 text-slate-200 overflow-hidden font-sans">
             <Sidebar />
 
-            <main className="flex-1 flex flex-col h-full relative">
+            <main className="flex-1 flex flex-col h-full relative pt-16 md:pt-0">
                 <div className="absolute top-0 left-0 w-full h-75 bg-linear-gradient-to-b from-navy-900 to-transparent pointer-events-none" />
 
                 <div className="p-8 pb-0 z-10">
