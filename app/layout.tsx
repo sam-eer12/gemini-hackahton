@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Lato } from "next/font/google"; // Using Lato for a clean, professional sans-serif
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next"
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -42,6 +43,7 @@ export default function RootLayout({
         className={`${playfair.variable} ${lato.variable} antialiased bg-navy-950 text-slate-200 font-sans`}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
