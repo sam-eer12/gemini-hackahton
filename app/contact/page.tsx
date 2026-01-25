@@ -100,7 +100,7 @@ export default function ContactPage() {
                                 <div className="p-3 bg-navy-800 rounded-sm">
                                     <Mail size={20} className="text-gold-500" />
                                 </div>
-                                <span>support@amicus.ai</span>
+                                <span>sameer870732@gmail.com</span>
                             </div>
                         </div>
 
