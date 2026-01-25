@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Lock, User } from "lucide-react";
+import { X, Mail, Lock, User, ShieldCheck } from "lucide-react";
 import { storeToken } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 
@@ -12,11 +12,20 @@ interface AuthModalProps {
     initialMode?: "login" | "signup";
 }
 
+// Declare global phoneEmailListener for phone.email widget
+declare global {
+    interface Window {
+        phoneEmailListener?: (userObj: { user_json_url: string }) => void;
+    }
+}
+
 export default function AuthModal({ isOpen, onClose, initialMode = "login" }: AuthModalProps) {
     const [mode, setMode] = useState<"login" | "signup">(initialMode);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+    const [pendingUserData, setPendingUserData] = useState<any>(null);
     const router = useRouter();
 
     // Form states
@@ -25,6 +34,64 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     const [confirmPassword, setConfirmPassword] = useState("");
     const [name, setName] = useState("");
 
+    // Setup phone.email callback
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            window.phoneEmailListener = async (userObj: { user_json_url: string }) => {
+                console.log('Email verified! JSON URL:', userObj.user_json_url);
+
+                if (!pendingUserData) {
+                    setError('Verification data missing. Please try again.');
+                    setIsVerifyingEmail(false);
+                    return;
+                }
+
+                setLoading(true);
+
+                try {
+                    const response = await fetch('/api/auth/verify-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_json_url: userObj.user_json_url,
+                            userData: pendingUserData,
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Verification failed');
+                    }
+
+                    // Store token and user ID
+                    storeToken(data.token);
+                    if (typeof window !== 'undefined') {
+                        localStorage.setItem('amicus_user_id', data.user.id);
+                    }
+
+                    setSuccess('Email verified! Welcome to AMICUS. Redirecting...');
+
+                    // Redirect to chat
+                    setTimeout(() => {
+                        router.push('/chat');
+                    }, 1500);
+                } catch (err: any) {
+                    setError(err.message || 'Verification failed');
+                    setIsVerifyingEmail(false);
+                } finally {
+                    setLoading(false);
+                }
+            };
+        }
+
+        return () => {
+            if (typeof window !== 'undefined') {
+                delete window.phoneEmailListener;
+            }
+        };
+    }, [pendingUserData, router]);
+
     const resetForm = () => {
         setEmail("");
         setPassword("");
@@ -32,6 +99,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         setName("");
         setError("");
         setSuccess("");
+        setIsVerifyingEmail(false);
+        setPendingUserData(null);
     };
 
     const handleModeSwitch = (newMode: "login" | "signup") => {
@@ -57,6 +126,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         }
 
         if (mode === "signup") {
+            if (!name || name.trim().length === 0) {
+                setError("Please enter your name");
+                return false;
+            }
+
             if (password !== confirmPassword) {
                 setError("Passwords do not match");
                 return false;
@@ -73,18 +147,21 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
         if (!validateForm()) return;
 
+        if (mode === "signup") {
+            // For signup, store data and show verification widget
+            setPendingUserData({ email, password, name });
+            setIsVerifyingEmail(true);
+            return;
+        }
+
+        // Login flow remains the same
         setLoading(true);
 
         try {
-            const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/signup";
-            const body = mode === "login"
-                ? { email, password }
-                : { email, password, name };
-
-            const response = await fetch(endpoint, {
+            const response = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
+                body: JSON.stringify({ email, password }),
             });
 
             const data = await response.json();
@@ -93,25 +170,17 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                 throw new Error(data.error || "Something went wrong");
             }
 
-            if (mode === "login") {
-                // Store token and user ID
-                storeToken(data.token);
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('amicus_user_id', data.user.id);
-                }
-                setSuccess("Login successful! Redirecting...");
-
-                // Redirect directly to chat
-                setTimeout(() => {
-                    router.push("/chat");
-                }, 1000);
-            } else {
-                // Signup successful
-                setSuccess("Account created! Please log in.");
-                setTimeout(() => {
-                    handleModeSwitch("login");
-                }, 1500);
+            // Store token and user ID
+            storeToken(data.token);
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('amicus_user_id', data.user.id);
             }
+            setSuccess("Login successful! Redirecting...");
+
+            // Redirect directly to chat
+            setTimeout(() => {
+                router.push("/chat");
+            }, 1000);
         } catch (err: any) {
             setError(err.message || "An error occurred");
         } finally {
@@ -151,124 +220,170 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                         {/* Header */}
                         <div className="mb-8">
                             <h2 className="text-3xl font-serif text-slate-100 mb-2">
-                                {mode === "login" ? "Welcome Back" : "Create Account"}
+                                {isVerifyingEmail ? "Verify Your Email" : mode === "login" ? "Welcome Back" : "Create Account"}
                             </h2>
                             <p className="text-slate-400 text-sm">
-                                {mode === "login"
-                                    ? "Sign in to access your legal counsel"
-                                    : "Join AMICUS for elite legal assistance"}
+                                {isVerifyingEmail
+                                    ? "Enter the OTP sent to your email"
+                                    : mode === "login"
+                                        ? "Sign in to access your legal counsel"
+                                        : "Join AMICUS for elite legal assistance"}
                             </p>
                         </div>
 
-                        {/* Form */}
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            {mode === "signup" && (
+                        {/* Email Verification Widget */}
+                        {isVerifyingEmail && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-6"
+                            >
+                                <div className="bg-navy-950 border border-gold-500/30 p-6 text-center">
+                                    <ShieldCheck className="text-gold-500 mx-auto mb-4" size={48} />
+                                    <p className="text-slate-300 mb-4">
+                                        Verifying: <span className="text-gold-400 font-medium">{pendingUserData?.email}</span>
+                                    </p>
+                                    <div
+                                        className="pe_verify_email"
+                                        data-client-id="18718410808713984467"
+                                        data-phone-email-listener="phoneEmailListener"
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={() => setIsVerifyingEmail(false)}
+                                    className="w-full border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600 py-3 uppercase tracking-widest text-sm transition-colors"
+                                >
+                                    Cancel Verification
+                                </button>
+
+                                {error && (
+                                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 text-sm">
+                                        {error}
+                                    </div>
+                                )}
+
+                                {success && (
+                                    <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 text-sm">
+                                        {success}
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+
+                        {/* Form - Only show if not verifying email */}
+                        {!isVerifyingEmail && (
+                            <form onSubmit={handleSubmit} className="space-y-5">
+                                {mode === "signup" && (
+                                    <div>
+                                        <label className="block text-slate-300 text-sm mb-2 uppercase tracking-wider">
+                                            Name
+                                        </label>
+                                        <div className="relative">
+                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                                            <input
+                                                type="text"
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                                className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 px-10 py-3 focus:outline-none focus:border-gold-500/50 transition-colors"
+                                                placeholder="Your name"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div>
                                     <label className="block text-slate-300 text-sm mb-2 uppercase tracking-wider">
-                                        Name
+                                        Email
                                     </label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                                         <input
-                                            type="text"
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value)}
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
                                             className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 px-10 py-3 focus:outline-none focus:border-gold-500/50 transition-colors"
-                                            placeholder="Your name"
+                                            placeholder="your@email.com"
+                                            required
                                         />
                                     </div>
                                 </div>
-                            )}
 
-                            <div>
-                                <label className="block text-slate-300 text-sm mb-2 uppercase tracking-wider">
-                                    Email
-                                </label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 px-10 py-3 focus:outline-none focus:border-gold-500/50 transition-colors"
-                                        placeholder="your@email.com"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-slate-300 text-sm mb-2 uppercase tracking-wider">
-                                    Password
-                                </label>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 px-10 py-3 focus:outline-none focus:border-gold-500/50 transition-colors"
-                                        placeholder="••••••••"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            {mode === "signup" && (
                                 <div>
                                     <label className="block text-slate-300 text-sm mb-2 uppercase tracking-wider">
-                                        Confirm Password
+                                        Password
                                     </label>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                                         <input
                                             type="password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
                                             className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 px-10 py-3 focus:outline-none focus:border-gold-500/50 transition-colors"
                                             placeholder="••••••••"
                                             required
                                         />
                                     </div>
                                 </div>
-                            )}
 
-                            {/* Error/Success Messages */}
-                            {error && (
-                                <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 text-sm">
-                                    {error}
-                                </div>
-                            )}
+                                {mode === "signup" && (
+                                    <div>
+                                        <label className="block text-slate-300 text-sm mb-2 uppercase tracking-wider">
+                                            Confirm Password
+                                        </label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                                            <input
+                                                type="password"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 px-10 py-3 focus:outline-none focus:border-gold-500/50 transition-colors"
+                                                placeholder="••••••••"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
-                            {success && (
-                                <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 text-sm">
-                                    {success}
-                                </div>
-                            )}
+                                {/* Error/Success Messages */}
+                                {error && (
+                                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 text-sm">
+                                        {error}
+                                    </div>
+                                )}
 
-                            {/* Submit Button */}
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold py-3 uppercase tracking-widest text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {loading ? "Processing..." : mode === "login" ? "Sign In" : "Create Account"}
-                            </button>
-                        </form>
+                                {success && (
+                                    <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 text-sm">
+                                        {success}
+                                    </div>
+                                )}
 
-                        {/* Mode Switch */}
-                        <div className="mt-6 text-center">
-                            <p className="text-slate-400 text-sm">
-                                {mode === "login" ? "Don't have an account?" : "Already have an account?"}
-                                {" "}
+                                {/* Submit Button */}
                                 <button
-                                    onClick={() => handleModeSwitch(mode === "login" ? "signup" : "login")}
-                                    className="text-gold-400 hover:text-gold-300 transition-colors font-medium"
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold py-3 uppercase tracking-widest text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {mode === "login" ? "Sign Up" : "Sign In"}
+                                    {loading ? "Processing..." : mode === "login" ? "Sign In" : "Continue to Verification"}
                                 </button>
-                            </p>
-                        </div>
+                            </form>
+                        )}
+
+                        {/* Mode Switch - Only show if not verifying */}
+                        {!isVerifyingEmail && (
+                            <div className="mt-6 text-center">
+                                <p className="text-slate-400 text-sm">
+                                    {mode === "login" ? "Don't have an account?" : "Already have an account?"}
+                                    {" "}
+                                    <button
+                                        onClick={() => handleModeSwitch(mode === "login" ? "signup" : "login")}
+                                        className="text-gold-400 hover:text-gold-300 transition-colors font-medium"
+                                    >
+                                        {mode === "login" ? "Sign Up" : "Sign In"}
+                                    </button>
+                                </p>
+                            </div>
+                        )}
                     </motion.div>
                 </div>
             )}

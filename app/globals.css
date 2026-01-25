@@ -34,17 +34,3 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-slate-100);
 }
 
-/* Custom Scrollbar for a premium feel */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-navy-900);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-navy-800);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gold-600);
-}

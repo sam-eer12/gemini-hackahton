@@ -69,7 +69,7 @@ export default function Contracts() {
             <Sidebar />
 
             <main className="flex-1 flex flex-col h-full relative">
-                <div className="absolute top-0 left-0 w-full h-[300px] bg-linear-gradient-to-b from-navy-900 to-transparent pointer-events-none" />
+                <div className="absolute top-0 left-0 w-full h-75 bg-linear-gradient-to-b from-navy-900 to-transparent pointer-events-none" />
 
                 <div className="p-8 pb-0 z-10">
                     <h1 className="text-3xl font-serif text-slate-100 mb-6">Contract Suite</h1>
@@ -115,7 +115,7 @@ export default function Contracts() {
                             </div>
 
                             {generatedContract && (
-                                <div className="bg-white text-navy-950 p-12 shadow-2xl rounded-sm min-h-[500px] relative">
+                                <div className="bg-white text-navy-950 p-12 shadow-2xl rounded-sm min-h-125 relative">
                                     <div className="absolute top-4 right-4 text-slate-400 cursor-pointer hover:text-navy-800">
                                         <Download size={20} />
                                     </div>

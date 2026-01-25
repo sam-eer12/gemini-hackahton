@@ -16,7 +16,7 @@ const UserSchema = new Schema({
     },
     jurisdiction_country: {
         type: String,
-        required: false, 
+        required: false,
         default: null
     },
     jurisdiction_state: {
@@ -27,6 +27,15 @@ const UserSchema = new Schema({
     onboarding_complete: {
         type: Boolean,
         default: false
+    },
+    email_verified: {
+        type: Boolean,
+        default: false
+    },
+    verified_at: {
+        type: Date,
+        required: false,
+        default: null
     },
     createdAt: {
         type: Date,
