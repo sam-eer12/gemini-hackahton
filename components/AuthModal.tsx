@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Lock, User, ShieldCheck } from "lucide-react";
+import { X, Mail, Lock, User, ShieldCheck, Loader2 } from "lucide-react";
 import { storeToken } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 
@@ -12,20 +12,16 @@ interface AuthModalProps {
     initialMode?: "login" | "signup";
 }
 
-// Declare global phoneEmailListener for phone.email widget
-declare global {
-    interface Window {
-        phoneEmailListener?: (userObj: { user_json_url: string }) => void;
-    }
-}
-
 export default function AuthModal({ isOpen, onClose, initialMode = "login" }: AuthModalProps) {
     const [mode, setMode] = useState<"login" | "signup">(initialMode);
     const [loading, setLoading] = useState(false);
+    const [checkingEmail, setCheckingEmail] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+    const [otpSent, setOtpSent] = useState(false);
     const [pendingUserData, setPendingUserData] = useState<any>(null);
+    const [resendTimer, setResendTimer] = useState(0);
     const router = useRouter();
 
     // Form states
@@ -34,63 +30,143 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     const [confirmPassword, setConfirmPassword] = useState("");
     const [name, setName] = useState("");
 
-    // Setup phone.email callback
+    // OTP input states
+    const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
+
+    // Resend timer countdown
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            window.phoneEmailListener = async (userObj: { user_json_url: string }) => {
-                console.log('Email verified! JSON URL:', userObj.user_json_url);
+        if (resendTimer > 0) {
+            const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [resendTimer]);
 
-                if (!pendingUserData) {
-                    setError('Verification data missing. Please try again.');
-                    setIsVerifyingEmail(false);
-                    return;
-                }
+    // Send OTP to email
+    const sendOTP = async () => {
+        if (!pendingUserData) return;
 
-                setLoading(true);
+        setLoading(true);
+        setError("");
 
-                try {
-                    const response = await fetch('/api/auth/verify-email', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            user_json_url: userObj.user_json_url,
-                            userData: pendingUserData,
-                        }),
-                    });
+        try {
+            const response = await fetch('/api/auth/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pendingUserData),
+            });
 
-                    const data = await response.json();
+            const data = await response.json();
 
-                    if (!response.ok) {
-                        throw new Error(data.error || 'Verification failed');
-                    }
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to send OTP');
+            }
 
-                    // Store token and user ID
-                    storeToken(data.token);
-                    if (typeof window !== 'undefined') {
-                        localStorage.setItem('amicus_user_id', data.user.id);
-                    }
+            setOtpSent(true);
+            setResendTimer(60);
+            
+            // Show OTP for testing (remove in production)
+            if (data.otp) {
+                setSuccess(`Code sent! (Test mode: ${data.otp})`);
+            } else {
+                setSuccess('Verification code sent to your email!');
+            }
 
-                    setSuccess('Email verified! Welcome to AMICUS. Redirecting...');
+            // Focus first OTP input
+            setTimeout(() => {
+                otpInputRefs.current[0]?.focus();
+            }, 100);
+        } catch (err: any) {
+            setError(err.message || 'Failed to send verification code');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-                    // Redirect to chat
-                    setTimeout(() => {
-                        router.push('/chat');
-                    }, 1500);
-                } catch (err: any) {
-                    setError(err.message || 'Verification failed');
-                    setIsVerifyingEmail(false);
-                } finally {
-                    setLoading(false);
-                }
-            };
+    // Verify OTP
+    const verifyOTP = async () => {
+        const otp = otpDigits.join('');
+
+        if (otp.length !== 6) {
+            setError('Please enter the complete 6-digit code');
+            return;
         }
 
-        return () => {
-            if (typeof window !== 'undefined') {
-                delete window.phoneEmailListener;
+        setLoading(true);
+        setError("");
+
+        try {
+            const response = await fetch('/api/auth/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: pendingUserData.email,
+                    otp,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Verification failed');
             }
-        };
-    }, [pendingUserData, router]);
+
+            // Store token and user ID
+            storeToken(data.token);
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('amicus_user_id', data.user.id);
+            }
+
+            setSuccess('Email verified! Welcome to AMICUS. Redirecting...');
+
+            // Redirect to chat/dashboard
+            setTimeout(() => {
+                router.push('/chat');
+            }, 1500);
+        } catch (err: any) {
+            setError(err.message || 'Verification failed');
+            setOtpDigits(["", "", "", "", "", ""]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Auto-verify when all digits are entered
+    useEffect(() => {
+        if (otpSent && otpDigits.every(d => d !== '') && !loading) {
+            verifyOTP();
+        }
+    }, [otpDigits, otpSent]);
+
+    // Handle OTP input change
+    const handleOtpChange = (index: number, value: string) => {
+        if (value.length > 1) {
+            // Handle paste
+            const digits = value.replace(/\D/g, '').slice(0, 6).split('');
+            const newOtpDigits = ["", "", "", "", "", ""];
+            digits.forEach((digit, i) => {
+                if (i < 6) {
+                    newOtpDigits[i] = digit;
+                }
+            });
+            setOtpDigits(newOtpDigits);
+            const nextIndex = Math.min(digits.length, 5);
+            otpInputRefs.current[nextIndex]?.focus();
+        } else {
+            const newOtpDigits = [...otpDigits];
+            newOtpDigits[index] = value;
+            setOtpDigits(newOtpDigits);
+            if (value && index < 5) {
+                otpInputRefs.current[index + 1]?.focus();
+            }
+        }
+    };
+
+    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+            otpInputRefs.current[index - 1]?.focus();
+        }
+    };
 
     const resetForm = () => {
         setEmail("");
@@ -100,7 +176,29 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         setError("");
         setSuccess("");
         setIsVerifyingEmail(false);
+        setOtpSent(false);
         setPendingUserData(null);
+        setOtpDigits(["", "", "", "", "", ""]);
+        setResendTimer(0);
+    };
+
+    // Check if email already exists
+    const checkEmailExists = async (emailToCheck: string): Promise<boolean> => {
+        try {
+            setCheckingEmail(true);
+            const response = await fetch('/api/auth/check-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailToCheck }),
+            });
+            const data = await response.json();
+            return data.exists;
+        } catch (err) {
+            console.error('Error checking email:', err);
+            return false;
+        } finally {
+            setCheckingEmail(false);
+        }
     };
 
     const handleModeSwitch = (newMode: "login" | "signup") => {
@@ -148,13 +246,23 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         if (!validateForm()) return;
 
         if (mode === "signup") {
-            // For signup, store data and show verification widget
+            // Check if email already exists
+            setLoading(true);
+            const emailExists = await checkEmailExists(email);
+            setLoading(false);
+
+            if (emailExists) {
+                setError("An account with this email already exists. Please sign in instead.");
+                return;
+            }
+
+            // For signup, store data and show verification screen
             setPendingUserData({ email, password, name });
             setIsVerifyingEmail(true);
             return;
         }
 
-        // Login flow remains the same
+        // Login flow
         setLoading(true);
 
         try {
@@ -177,7 +285,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
             }
             setSuccess("Login successful! Redirecting...");
 
-            // Redirect directly to chat
             setTimeout(() => {
                 router.push("/chat");
             }, 1000);
@@ -224,14 +331,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                             </h2>
                             <p className="text-slate-400 text-sm">
                                 {isVerifyingEmail
-                                    ? "Enter the OTP sent to your email"
+                                    ? otpSent 
+                                        ? "Enter the 6-digit code sent to your email"
+                                        : "We'll send you a verification code"
                                     : mode === "login"
                                         ? "Sign in to access your legal counsel"
                                         : "Join AMICUS for elite legal assistance"}
                             </p>
                         </div>
 
-                        {/* Email Verification Widget */}
+                        {/* Email Verification with OTP */}
                         {isVerifyingEmail && (
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -240,21 +349,100 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                             >
                                 <div className="bg-navy-950 border border-gold-500/30 p-6 text-center">
                                     <ShieldCheck className="text-gold-500 mx-auto mb-4" size={48} />
-                                    <p className="text-slate-300 mb-4">
-                                        Verifying: <span className="text-gold-400 font-medium">{pendingUserData?.email}</span>
+                                    <p className="text-slate-300 mb-2">
+                                        {otpSent ? "Enter verification code" : "Verify your email address"}
                                     </p>
-                                    <div
-                                        className="pe_verify_email"
-                                        data-client-id="18718410808713984467"
-                                        data-phone-email-listener="phoneEmailListener"
-                                    />
+                                    <p className="text-gold-400 font-medium mb-4">
+                                        {pendingUserData?.email}
+                                    </p>
+
+                                    {!otpSent ? (
+                                        <>
+                                            <p className="text-slate-400 text-sm mb-6">
+                                                Click the button below to receive a verification code
+                                            </p>
+                                            <button
+                                                onClick={sendOTP}
+                                                disabled={loading}
+                                                className="w-full bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold py-3 uppercase tracking-widest text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                            >
+                                                {loading ? (
+                                                    <>
+                                                        <Loader2 className="animate-spin" size={18} />
+                                                        Sending...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Mail size={18} />
+                                                        Send Verification Code
+                                                    </>
+                                                )}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {/* OTP Input Boxes */}
+                                            <div className="flex justify-center gap-2 mb-6">
+                                                {otpDigits.map((digit, index) => (
+                                                    <input
+                                                        key={index}
+                                                        ref={(el) => { otpInputRefs.current[index] = el; }}
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        maxLength={6}
+                                                        value={digit}
+                                                        onChange={(e) => handleOtpChange(index, e.target.value.replace(/\D/g, ''))}
+                                                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                                                        onPaste={(e) => {
+                                                            e.preventDefault();
+                                                            const pastedData = e.clipboardData.getData('text').replace(/\D/g, '');
+                                                            handleOtpChange(0, pastedData);
+                                                        }}
+                                                        className="w-12 h-14 text-center text-2xl font-bold bg-navy-950 border border-slate-700 text-slate-100 focus:border-gold-500 focus:outline-none transition-colors"
+                                                        disabled={loading}
+                                                    />
+                                                ))}
+                                            </div>
+
+                                            {loading && (
+                                                <div className="flex items-center justify-center gap-2 text-gold-400 mb-4">
+                                                    <Loader2 className="animate-spin" size={20} />
+                                                    <span>Verifying...</span>
+                                                </div>
+                                            )}
+
+                                            {/* Resend OTP */}
+                                            <div className="text-sm">
+                                                {resendTimer > 0 ? (
+                                                    <p className="text-slate-500">
+                                                        Resend code in {resendTimer}s
+                                                    </p>
+                                                ) : (
+                                                    <button
+                                                        onClick={sendOTP}
+                                                        disabled={loading}
+                                                        className="text-gold-400 hover:text-gold-300 transition-colors"
+                                                    >
+                                                        Didn't receive code? Resend
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
 
                                 <button
-                                    onClick={() => setIsVerifyingEmail(false)}
+                                    onClick={() => {
+                                        setIsVerifyingEmail(false);
+                                        setOtpSent(false);
+                                        setOtpDigits(["", "", "", "", "", ""]);
+                                        setError("");
+                                        setSuccess("");
+                                    }}
                                     className="w-full border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600 py-3 uppercase tracking-widest text-sm transition-colors"
+                                    disabled={loading}
                                 >
-                                    Cancel Verification
+                                    ← Back to Signup
                                 </button>
 
                                 {error && (
@@ -361,10 +549,15 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                                 {/* Submit Button */}
                                 <button
                                     type="submit"
-                                    disabled={loading}
-                                    className="w-full bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold py-3 uppercase tracking-widest text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={loading || checkingEmail}
+                                    className="w-full bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold py-3 uppercase tracking-widest text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
-                                    {loading ? "Processing..." : mode === "login" ? "Sign In" : "Continue to Verification"}
+                                    {(loading || checkingEmail) && <Loader2 className="animate-spin" size={18} />}
+                                    {loading || checkingEmail
+                                        ? "Checking..."
+                                        : mode === "login"
+                                            ? "Sign In"
+                                            : "Continue to Verification"}
                                 </button>
                             </form>
                         )}
