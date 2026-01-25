@@ -67,7 +67,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
             
             // Show OTP for testing (remove in production)
             if (data.otp) {
-                setSuccess(`Code sent! (Test mode: ${data.otp})`);
+                setSuccess(`Code sent!`);
             } else {
                 setSuccess('Verification code sent to your email!');
             }
