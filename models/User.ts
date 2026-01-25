@@ -19,16 +19,12 @@ const UserSchema = new Schema({
     },
     jurisdiction_country: {
         type: String,
-<<<<<<< HEAD
         required: false,
-=======
-        required: false, // Optional until onboarding is complete
->>>>>>> parent of 385c668 (Update User.ts)
         default: null
     },
     jurisdiction_state: {
         type: String,
-        required: false, // Optional until onboarding is complete
+        required: false,
         default: null
     },
     onboarding_complete: {
