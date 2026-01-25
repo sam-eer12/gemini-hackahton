@@ -14,7 +14,7 @@ export default function Navbar({ onLoginClick, showAuthButton = true }: NavbarPr
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const navLinks = [
-        { href: '/terms', label: 'Protocol' },
+        
         { href: '/about', label: 'The Firm' },
         { href: '/contact', label: 'Contact' },
     ];
