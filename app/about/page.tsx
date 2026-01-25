@@ -198,7 +198,7 @@ export default function AboutPage() {
                         <h3 className="text-lg font-serif text-slate-100">Localized Legal DB</h3>
                         <p className="text-slate-400 text-sm">
                             Real-time access to state and federal statutes, case law, and regulatory
-                            updates across all 50 US states and 190+ countries.
+                            updates across India and 190+ countries.
                         </p>
                     </div>
                 </div>
