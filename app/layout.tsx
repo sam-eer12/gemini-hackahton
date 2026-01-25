@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   title: "Amicus AI | The Future of Counsel",
   description: "Elite AI Legal Consultancy. Jurisdiction-aware, private, and precise.",
   icons: {
-    icon: '/android-chrome-512x512.png',
-    apple: '/android-chrome-512x512.png',
+    icon: '/favicon.png',
+    apple: '/favicon.png',
   },
 };
 
