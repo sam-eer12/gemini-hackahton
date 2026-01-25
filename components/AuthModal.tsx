@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Lock, User, ShieldCheck, Loader2, MapPin } from "lucide-react";
+import { X, Mail, Lock, User, ShieldCheck, Loader2 } from "lucide-react";
 import { storeToken } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 
@@ -29,44 +29,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [name, setName] = useState("");
-    const [country, setCountry] = useState("");
-    const [state, setState] = useState("");
-
-    // Countries and states data
-    const countriesWithStates: Record<string, string[]> = {
-        "India": [
-            "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
-            "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
-            "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
-            "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
-            "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
-            "Delhi", "Jammu and Kashmir", "Ladakh"
-        ],
-        "United States": [
-            "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
-            "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
-            "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
-            "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi",
-            "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey",
-            "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
-            "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina",
-            "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia",
-            "Washington", "West Virginia", "Wisconsin", "Wyoming"
-        ],
-        "United Kingdom": [
-            "England", "Scotland", "Wales", "Northern Ireland"
-        ],
-        "Canada": [
-            "Alberta", "British Columbia", "Manitoba", "New Brunswick",
-            "Newfoundland and Labrador", "Northwest Territories", "Nova Scotia",
-            "Nunavut", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan", "Yukon"
-        ],
-        "Australia": [
-            "New South Wales", "Queensland", "South Australia", "Tasmania",
-            "Victoria", "Western Australia", "Australian Capital Territory", "Northern Territory"
-        ],
-        "Other": []
-    };
 
     // OTP input states
     const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -211,8 +173,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
         setPassword("");
         setConfirmPassword("");
         setName("");
-        setCountry("");
-        setState("");
         setError("");
         setSuccess("");
         setIsVerifyingEmail(false);
@@ -273,16 +233,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                 setError("Passwords do not match");
                 return false;
             }
-
-            if (!country) {
-                setError("Please select your country");
-                return false;
-            }
-
-            if (!state) {
-                setError("Please select your state/province");
-                return false;
-            }
         }
 
         return true;
@@ -307,7 +257,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
             }
 
             // For signup, store data and show verification screen
-            setPendingUserData({ email, password, name, country, state });
+            setPendingUserData({ email, password, name });
             setIsVerifyingEmail(true);
             return;
         }
@@ -366,22 +316,22 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="relative w-full max-w-md bg-navy-900 border border-slate-800/50 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+                        className="relative w-full max-w-md bg-navy-900 border border-slate-800/50 p-8 shadow-2xl"
                     >
                         {/* Close button */}
                         <button
                             onClick={onClose}
-                            className="absolute top-3 right-3 text-slate-400 hover:text-slate-200 transition-colors"
+                            className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition-colors"
                         >
-                            <X size={18} />
+                            <X size={20} />
                         </button>
 
                         {/* Header */}
-                        <div className="mb-5">
-                            <h2 className="text-2xl font-serif text-slate-100 mb-1">
+                        <div className="mb-8">
+                            <h2 className="text-3xl font-serif text-slate-100 mb-2">
                                 {isVerifyingEmail ? "Verify Your Email" : mode === "login" ? "Welcome Back" : "Create Account"}
                             </h2>
-                            <p className="text-slate-400 text-xs">
+                            <p className="text-slate-400 text-sm">
                                 {isVerifyingEmail
                                     ? otpSent
                                         ? "Enter the 6-digit code sent to your email"
@@ -513,19 +463,19 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
                         {/* Form - Only show if not verifying email */}
                         {!isVerifyingEmail && (
-                            <form onSubmit={handleSubmit} className="space-y-3">
+                            <form onSubmit={handleSubmit} className="space-y-5">
                                 {mode === "signup" && (
                                     <div>
-                                        <label className="block text-slate-300 text-xs mb-1.5 uppercase tracking-wider">
+                                        <label className="block text-slate-300 text-sm mb-2 uppercase tracking-wider">
                                             Name
                                         </label>
                                         <div className="relative">
-                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                                             <input
                                                 type="text"
                                                 value={name}
                                                 onChange={(e) => setName(e.target.value)}
-                                                className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 text-sm px-9 py-2.5 focus:outline-none focus:border-gold-500/50 transition-colors"
+                                                className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 px-10 py-3 focus:outline-none focus:border-gold-500/50 transition-colors"
                                                 placeholder="Your name"
                                             />
                                         </div>
@@ -533,16 +483,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                                 )}
 
                                 <div>
-                                    <label className="block text-slate-300 text-xs mb-1.5 uppercase tracking-wider">
+                                    <label className="block text-slate-300 text-sm mb-2 uppercase tracking-wider">
                                         Email
                                     </label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                                         <input
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 text-sm px-9 py-2.5 focus:outline-none focus:border-gold-500/50 transition-colors"
+                                            className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 px-10 py-3 focus:outline-none focus:border-gold-500/50 transition-colors"
                                             placeholder="your@email.com"
                                             required
                                         />
@@ -550,16 +500,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                                 </div>
 
                                 <div>
-                                    <label className="block text-slate-300 text-xs mb-1.5 uppercase tracking-wider">
+                                    <label className="block text-slate-300 text-sm mb-2 uppercase tracking-wider">
                                         Password
                                     </label>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                                         <input
                                             type="password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 text-sm px-9 py-2.5 focus:outline-none focus:border-gold-500/50 transition-colors"
+                                            className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 px-10 py-3 focus:outline-none focus:border-gold-500/50 transition-colors"
                                             placeholder="••••••••"
                                             required
                                         />
@@ -568,93 +518,17 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
                                 {mode === "signup" && (
                                     <div>
-                                        <label className="block text-slate-300 text-xs mb-1.5 uppercase tracking-wider">
+                                        <label className="block text-slate-300 text-sm mb-2 uppercase tracking-wider">
                                             Confirm Password
                                         </label>
                                         <div className="relative">
-                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                                             <input
                                                 type="password"
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                                className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 text-sm px-9 py-2.5 focus:outline-none focus:border-gold-500/50 transition-colors"
+                                                className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 px-10 py-3 focus:outline-none focus:border-gold-500/50 transition-colors"
                                                 placeholder="••••••••"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {mode === "signup" && (
-                                    <div>
-                                        <label className="block text-slate-300 text-xs mb-1.5 uppercase tracking-wider">
-                                            Country
-                                        </label>
-                                        <div className="relative">
-                                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-                                            <select
-                                                value={country}
-                                                onChange={(e) => {
-                                                    setCountry(e.target.value);
-                                                    setState(""); // Reset state when country changes
-                                                }}
-                                                className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 text-sm px-9 py-2.5 focus:outline-none focus:border-gold-500/50 transition-colors appearance-none cursor-pointer"
-                                                required
-                                            >
-                                                <option value="" disabled>Select your country</option>
-                                                {Object.keys(countriesWithStates).map((c) => (
-                                                    <option key={c} value={c}>{c}</option>
-                                                ))}
-                                            </select>
-                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {mode === "signup" && country && country !== "Other" && (
-                                    <div>
-                                        <label className="block text-slate-300 text-xs mb-1.5 uppercase tracking-wider">
-                                            State / Province
-                                        </label>
-                                        <div className="relative">
-                                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-                                            <select
-                                                value={state}
-                                                onChange={(e) => setState(e.target.value)}
-                                                className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 text-sm px-9 py-2.5 focus:outline-none focus:border-gold-500/50 transition-colors appearance-none cursor-pointer"
-                                                required
-                                            >
-                                                <option value="" disabled>Select your state</option>
-                                                {countriesWithStates[country]?.map((s) => (
-                                                    <option key={s} value={s}>{s}</option>
-                                                ))}
-                                            </select>
-                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {mode === "signup" && country === "Other" && (
-                                    <div>
-                                        <label className="block text-slate-300 text-xs mb-1.5 uppercase tracking-wider">
-                                            State, Country
-                                        </label>
-                                        <div className="relative">
-                                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-                                            <input
-                                                type="text"
-                                                value={state}
-                                                onChange={(e) => setState(e.target.value)}
-                                                className="w-full bg-navy-950 border border-slate-800/50 text-slate-200 text-sm px-9 py-2.5 focus:outline-none focus:border-gold-500/50 transition-colors"
-                                                placeholder="Enter your state or region"
                                                 required
                                             />
                                         </div>
@@ -663,13 +537,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
                                 {/* Error/Success Messages */}
                                 {error && (
-                                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-3 py-2 text-xs">
+                                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 text-sm">
                                         {error}
                                     </div>
                                 )}
 
                                 {success && (
-                                    <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-3 py-2 text-xs">
+                                    <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 text-sm">
                                         {success}
                                     </div>
                                 )}
@@ -678,9 +552,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                                 <button
                                     type="submit"
                                     disabled={loading || checkingEmail}
-                                    className="w-full bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold py-2.5 uppercase tracking-widest text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="w-full bg-gold-500 hover:bg-gold-600 text-navy-950 font-bold py-3 uppercase tracking-widest text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
-                                    {(loading || checkingEmail) && <Loader2 className="animate-spin" size={16} />}
+                                    {(loading || checkingEmail) && <Loader2 className="animate-spin" size={18} />}
                                     {loading || checkingEmail
                                         ? "Checking..."
                                         : mode === "login"
@@ -692,8 +566,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
 
                         {/* Mode Switch - Only show if not verifying */}
                         {!isVerifyingEmail && (
-                            <div className="mt-4 text-center">
-                                <p className="text-slate-400 text-xs">
+                            <div className="mt-6 text-center">
+                                <p className="text-slate-400 text-sm">
                                     {mode === "login" ? "Don't have an account?" : "Already have an account?"}
                                     {" "}
                                     <button

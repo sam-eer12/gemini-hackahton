@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         }
 
         const emailLower = email.toLowerCase();
-
+        
         // Get stored OTP data from database
         const storedData = await OTP.findOne({ email: emailLower });
 
@@ -71,8 +71,6 @@ export async function POST(req: Request) {
             email: emailLower,
             password: hashedPassword,
             name: userData.name,
-            jurisdiction_country: userData.country || null,
-            jurisdiction_state: userData.state || null,
             email_verified: true,
             verified_at: new Date(),
         });
