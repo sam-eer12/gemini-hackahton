@@ -11,7 +11,7 @@ export default function Home() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
-    <main className="min-h-screen w-full bg-navy-950 text-slate-200 overflow-x-hidden relative" style={{ minWidth: '100vw' }}>
+    <main className="min-h-screen bg-navy-950 text-slate-200 overflow-hidden relative">
       {/* Prism Animation Background */}
       <div className="fixed inset-0 w-full h-full pointer-events-none opacity-75 z-0" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
         <Prism
