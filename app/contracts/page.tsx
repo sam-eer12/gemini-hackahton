@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { PenTool, FileSearch, Loader2, Download, AlertTriangle } from 'lucide-react';
 import Markdown from 'react-markdown';
@@ -12,10 +12,36 @@ export default function Contracts() {
     const [prompt, setPrompt] = useState('');
     const [generatedContract, setGeneratedContract] = useState('');
     const [loading, setLoading] = useState(false);
+    const [downloading, setDownloading] = useState(false);
 
     const [scanFile, setScanFile] = useState<File | null>(null);
     const [scanResult, setScanResult] = useState('');
     const router = useRouter();
+    const contractRef = useRef<HTMLDivElement>(null);
+
+    const handleDownloadPDF = async () => {
+        if (!contractRef.current || !generatedContract) return;
+
+        setDownloading(true);
+        try {
+            const html2pdf = (await import('html2pdf.js')).default;
+
+            const opt = {
+                margin: [10, 10, 10, 10] as [number, number, number, number],
+                filename: `contract_${Date.now()}.pdf`,
+                image: { type: 'jpeg' as const, quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
+            };
+
+            await html2pdf().set(opt).from(contractRef.current).save();
+        } catch (error) {
+            console.error('PDF generation failed:', error);
+            alert('Failed to generate PDF. Please try again.');
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     useEffect(() => {
         const userId = localStorage.getItem('amicus_user_id');
@@ -110,7 +136,7 @@ export default function Contracts() {
                                 <textarea
                                     value={prompt}
                                     onChange={(e) => setPrompt(e.target.value)}
-                                    placeholder="Describe the agreement (e.g., 'Freelance web design contract for a client in New York using Delaware Law, $5000 fixed fee, 50% upfront...')"
+                                    placeholder="Describe the agreement (e.g., 'Freelance web design contract for a client in New York using Delaware Law, $5000 fixed fee, 50% upfront...'). Also specify the parties, jurisdiction, and any other relevant details."
                                     className="w-full h-32 bg-navy-950 border border-slate-700 p-4 text-slate-200 focus:border-gold-500 focus:outline-none placeholder:text-slate-600 resize-none mb-6"
                                 />
                                 <button
@@ -124,12 +150,34 @@ export default function Contracts() {
                             </div>
 
                             {generatedContract && (
-                                <div className="bg-white text-navy-950 p-12 shadow-2xl rounded-sm min-h-125 relative">
-                                    <div className="absolute top-4 right-4 text-slate-400 cursor-pointer hover:text-navy-800">
-                                        <Download size={20} />
-                                    </div>
-                                    <div className="prose prose-sm max-w-none font-serif">
-                                        <Markdown>{generatedContract}</Markdown>
+                                <div ref={contractRef} className="bg-white p-12 shadow-2xl rounded-sm min-h-125 relative" style={{ color: '#000000' }}>
+                                    <button
+                                        onClick={handleDownloadPDF}
+                                        disabled={downloading}
+                                        className="absolute top-4 right-4 text-black cursor-pointer hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 print:hidden"
+                                    >
+                                        {downloading ? (
+                                            <img src="/favicon.png" alt="Loading" className="w-5 h-5 " />
+                                        ) : (
+                                            <Download size={20} />
+                                        )}
+                                        {downloading && <span className="text-xs">Amicus.AI</span>}
+                                    </button>
+                                    <div className="max-w-none font-serif" style={{ color: '#000000' }}>
+                                        <Markdown
+                                            components={{
+                                                p: ({ children }) => <p style={{ color: '#000000', marginBottom: '1em' }}>{children}</p>,
+                                                h1: ({ children }) => <h1 style={{ color: '#000000', fontWeight: 'bold', fontSize: '1.5em', marginBottom: '0.5em' }}>{children}</h1>,
+                                                h2: ({ children }) => <h2 style={{ color: '#000000', fontWeight: 'bold', fontSize: '1.25em', marginBottom: '0.5em' }}>{children}</h2>,
+                                                h3: ({ children }) => <h3 style={{ color: '#000000', fontWeight: 'bold', fontSize: '1.1em', marginBottom: '0.5em' }}>{children}</h3>,
+                                                strong: ({ children }) => <strong style={{ color: '#000000', fontWeight: 'bold' }}>{children}</strong>,
+                                                li: ({ children }) => <li style={{ color: '#000000', marginBottom: '0.25em' }}>{children}</li>,
+                                                ul: ({ children }) => <ul style={{ color: '#000000', paddingLeft: '1.5em', marginBottom: '1em' }}>{children}</ul>,
+                                                ol: ({ children }) => <ol style={{ color: '#000000', paddingLeft: '1.5em', marginBottom: '1em' }}>{children}</ol>,
+                                            }}
+                                        >
+                                            {generatedContract}
+                                        </Markdown>
                                     </div>
                                 </div>
                             )}
