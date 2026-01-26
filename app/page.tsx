@@ -6,6 +6,7 @@ import { Scale, ShieldCheck, FileText, Globe } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
 import Navbar from "@/components/Navbar";
 import Prism from "@/app/animations/Prism";
+import CardSwap, { Card } from "@/app/animations/CardSwap";
 
 export default function Home() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -35,29 +36,78 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-8 pt-20 pb-32 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="max-w-4xl"
-        >
-          <h1 className="text-6xl md:text-8xl font-serif font-medium leading-[1.1] text-slate-100 mb-8">
-            Jurisdiction-Aware <br />
-            <span className="text-slate-400 italic">Precognition.</span>
-          </h1>
-          <p className="text-lg md:text-xl text-slate-400 max-w-2xl leading-relaxed font-light border-l border-gold-600/50 pl-6 mb-12">
-            The world's first elite legal consultancy powered by Gemini 3.
-            Zero retention. Absolute privacy. Instant strategy tailored to your specific local laws.
-          </p>
-
-          <button
-            onClick={() => setIsAuthModalOpen(true)}
-            className="group relative px-8 py-4 bg-slate-100 text-navy-950 hover:bg-gold-500 transition-all duration-300 font-bold tracking-widest uppercase text-sm"
+        <div className="flex items-start justify-between">
+          {/* Left Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="max-w-4xl lg:max-w-2xl"
           >
-            Initialize Counsel
-            <span className="absolute bottom-0 right-0 w-full h-px bg-navy-950 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
-          </button>
-        </motion.div>
+            <h1 className="text-6xl md:text-8xl font-serif font-medium leading-[1.1] text-slate-100 mb-8">
+              Jurisdiction-Aware <br />
+              <span className="text-slate-400 italic">Precognition.</span>
+            </h1>
+            <p className="text-lg md:text-xl text-slate-400 max-w-2xl leading-relaxed font-light border-l border-gold-600/50 pl-6 mb-12">
+              The world's first elite legal consultancy powered by Gemini 3.
+              Zero retention. Absolute privacy. Instant strategy tailored to your specific local laws.
+            </p>
+
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="group relative px-8 py-4 bg-slate-100 text-navy-950 hover:bg-gold-500 transition-all duration-300 font-bold tracking-widest uppercase text-sm"
+            >
+              Initialize Counsel
+              <span className="absolute bottom-0 right-0 w-full h-px bg-navy-950 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
+            </button>
+          </motion.div>
+
+          {/* Right CardSwap - Hidden on medium and small screens */}
+          <div className="hidden lg:block relative h-150 w-125 -translate-y-20">
+            <CardSwap
+              cardDistance={60}
+              verticalDistance={70}
+              delay={4000}
+              pauseOnHover={true}
+              width={400}
+              height={260}
+            >
+              <Card className="p-6 bg-linear-to-br from-navy-900 to-navy-800 border-slate-700/50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-gold-500/20 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5 text-gold-400" />
+                  </div>
+                  <h3 className="text-lg font-serif text-slate-100">Analyze NDA Loophole</h3>
+                </div>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Upload a standard Non-Disclosure Agreement. Detect 'IP Assignment' traps hidden in Clause 4.
+                </p>
+              </Card>
+              <Card className="p-6 bg-linear-to-br from-navy-900 to-navy-800 border-slate-700/50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-gold-500/20 flex items-center justify-center">
+                    <Scale className="w-5 h-5 text-gold-400" />
+                  </div>
+                  <h3 className="text-lg font-serif text-slate-100">Instant Counsel</h3>
+                </div>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Lawyers charge ₹5000/hour. Amicus gives you the same strategy in 3 seconds for free.
+                </p>
+              </Card>
+              <Card className="p-6 bg-linear-to-br from-navy-900 to-navy-800 border-slate-700/50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-gold-500/20 flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-gold-400" />
+                  </div>
+                  <h3 className="text-lg font-serif text-slate-100">Jurisdiction Locking</h3>
+                </div>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Enforces strict boundary constraints. Ensures Delhi High Court cases are never polluted by US or UK legal precedents.
+                </p>
+              </Card>
+            </CardSwap>
+          </div>
+        </div>
       </section>
 
       {/* Bento Grid Services */}
