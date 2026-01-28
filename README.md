@@ -78,10 +78,9 @@ Create a `.env` file in the root directory:
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 GEMINI_API_KEY=your_gemini_api_key
-SMTP_HOST=your_smtp_host
-SMTP_PORT=587
-SMTP_USER=your_email
-SMTP_PASS=your_email_password
+GMAIL_USER=your_email
+GMAIL_APP_PASSWORD=your_email_password
+PORT=your_port
 ```
 
 ### Installation
