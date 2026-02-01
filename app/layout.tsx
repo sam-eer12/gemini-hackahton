@@ -38,6 +38,7 @@ export default function RootLayout({
           src="https://www.phone.email/verify_email_v1.js"
           strategy="afterInteractive"
         />
+        <meta name="google-site-verification" content="z89_y2w8b2a0dGcpC0S3hy4ObEPHA1A09Ts5T3aHZEU" />
       </head>
       <body
         className={`${playfair.variable} ${lato.variable} antialiased bg-navy-950 text-slate-200 font-sans`}
